@@ -3,8 +3,8 @@
  * Comprehensive logging with multiple transports, file rotation, and structured output
  */
 
-import { getLoggingConfig, shouldLog, type LogLevel } from './logging/config';
-import { ConsoleTransport, FileTransport, type LogEntry } from './logging/transports';
+import { getLoggingConfig, shouldLog, type LogLevel } from './logging/config.js';
+import { ConsoleTransport, FileTransport, type LogEntry } from './logging/transports.js';
 
 class Logger {
   private config = getLoggingConfig();

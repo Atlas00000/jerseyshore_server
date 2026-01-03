@@ -6,7 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createWriteStream, WriteStream } from 'fs';
-import type { LogLevel } from './config';
+import type { LogLevel } from './config.js';
 
 export interface LogEntry {
   timestamp: string;
