@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import { Router, type IRouter } from 'express';
 import multer from 'multer';
 import { uploadPrint } from '../controllers/printController.js';
 
-const router = Router();
+const router: IRouter = Router();
 
 // Configure multer for memory storage
 const upload = multer({

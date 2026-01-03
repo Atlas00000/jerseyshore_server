@@ -67,7 +67,7 @@ export async function uploadPrint(req: Request, res: Response) {
       metadata: { fileName, publicUrl },
     });
 
-    res.json({
+    return res.json({
       success: true,
       url: publicUrl,
       fileName: fileName,
@@ -81,7 +81,7 @@ export async function uploadPrint(req: Request, res: Response) {
         mimeType: req.file?.mimetype,
       },
     });
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to upload print',
       message: error instanceof Error ? error.message : 'Unknown error',
     });

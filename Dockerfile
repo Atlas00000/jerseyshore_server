@@ -24,6 +24,15 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
+# Create logs directory
+RUN mkdir -p /app/logs
+
 EXPOSE 3001
+
+# Set logging environment variables
+ENV LOG_DIR=/app/logs
+ENV LOG_FORMAT=json
+ENV ENABLE_FILE_LOGGING=true
+
 CMD ["pnpm", "start"]
 

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { logger } from './utils/logger.js';
+import { requestLogger, errorLogger } from './utils/logging/middleware.js';
 import printsRouter from './routes/prints.js';
 
 // Load environment variables
@@ -19,20 +20,11 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware
-app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.path}`, {
-    context: 'HTTP',
-    metadata: {
-      ip: req.ip,
-      userAgent: req.get('user-agent'),
-    },
-  });
-  next();
-});
+// Request logging middleware (enhanced)
+app.use(requestLogger);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -43,28 +35,26 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/prints', printsRouter);
 
-// Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Unhandled error', {
-    context: 'Express',
-    error: err,
-    metadata: {
-      method: req.method,
-      path: req.path,
-      body: req.body,
-    },
-  });
+// Error handling middleware (enhanced)
+app.use(errorLogger);
 
+// Error response handler
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   res.status(500).json({
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
+    requestId: (req as any).requestId,
   });
 });
 
 // 404 handler
-app.use((req, res) => {
-  logger.warn(`Route not found: ${req.method} ${req.path}`, {
+app.use((_req, res) => {
+  logger.warn('Route not found', {
     context: 'Express',
+    metadata: {
+      method: _req.method,
+      path: _req.path,
+    },
   });
   res.status(404).json({ error: 'Route not found' });
 });
@@ -83,11 +73,13 @@ app.listen(PORT, () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully', { context: 'Server' });
+  logger.close();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully', { context: 'Server' });
+  logger.close();
   process.exit(0);
 });
 
